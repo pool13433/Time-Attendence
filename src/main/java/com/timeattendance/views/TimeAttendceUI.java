@@ -7,6 +7,8 @@ import java.awt.Font;
 import java.awt.Toolkit;
 import java.io.File;
 import java.util.Properties;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.Function;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
@@ -17,7 +19,7 @@ import org.apache.log4j.Logger;
  *
  * @author pool13433
  */
-public final class TimeAttendceUI extends javax.swing.JFrame {
+public final class TimeAttendceUI<U> extends javax.swing.JFrame {
 
     private static Logger logger = Logger.getLogger(TimeAttendceUI.class.getName());
 
@@ -31,7 +33,7 @@ public final class TimeAttendceUI extends javax.swing.JFrame {
         logger.info("attendance.app.version::==" + this.env.getProperty("attendance.app.version"));
 
         this.initialUIFont();
-        this.initialUIMessage();
+        this.initialComponentsUI();
     }
 
     /**
@@ -45,9 +47,6 @@ public final class TimeAttendceUI extends javax.swing.JFrame {
 
         dialogChooseFolder = new javax.swing.JDialog();
         fileChooseFolder = new javax.swing.JFileChooser();
-        dialogLoading = new javax.swing.JDialog();
-        imageLoading = new javax.swing.JLabel();
-        labelLoading = new javax.swing.JLabel();
         labelChooseFolder = new javax.swing.JLabel();
         textChooseFolder = new javax.swing.JTextField();
         buttonChooseFolder = new javax.swing.JButton();
@@ -92,39 +91,6 @@ public final class TimeAttendceUI extends javax.swing.JFrame {
 
         dialogChooseFolder.getAccessibleContext().setAccessibleParent(null);
 
-        dialogLoading.setModal(true);
-        dialogLoading.setSize(new java.awt.Dimension(800, 200));
-        dialogLoading.setType(java.awt.Window.Type.POPUP);
-
-        imageLoading.setIcon(new javax.swing.ImageIcon("D:\\Freelance\\TimeIn-Out\\NetBeansProjects\\TimeAttendance\\resources\\icons\\loading.gif")); // NOI18N
-
-        labelLoading.setFont(new java.awt.Font("Sarabun", 1, 24)); // NOI18N
-        labelLoading.setText("ระบบกำลังประมวลผล กรุณารอสักครู่....");
-
-        javax.swing.GroupLayout dialogLoadingLayout = new javax.swing.GroupLayout(dialogLoading.getContentPane());
-        dialogLoading.getContentPane().setLayout(dialogLoadingLayout);
-        dialogLoadingLayout.setHorizontalGroup(
-            dialogLoadingLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(dialogLoadingLayout.createSequentialGroup()
-                .addGap(63, 63, 63)
-                .addComponent(imageLoading)
-                .addGap(33, 33, 33)
-                .addComponent(labelLoading, javax.swing.GroupLayout.PREFERRED_SIZE, 554, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(43, Short.MAX_VALUE))
-        );
-        dialogLoadingLayout.setVerticalGroup(
-            dialogLoadingLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(dialogLoadingLayout.createSequentialGroup()
-                .addGroup(dialogLoadingLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(dialogLoadingLayout.createSequentialGroup()
-                        .addGap(17, 17, 17)
-                        .addComponent(imageLoading))
-                    .addGroup(dialogLoadingLayout.createSequentialGroup()
-                        .addGap(67, 67, 67)
-                        .addComponent(labelLoading)))
-                .addContainerGap(135, Short.MAX_VALUE))
-        );
-
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         addWindowListener(new java.awt.event.WindowAdapter() {
             public void windowOpened(java.awt.event.WindowEvent evt) {
@@ -135,6 +101,7 @@ public final class TimeAttendceUI extends javax.swing.JFrame {
         labelChooseFolder.setFont(new java.awt.Font("Sarabun", 1, 14)); // NOI18N
         labelChooseFolder.setText("...");
 
+        textChooseFolder.setEditable(false);
         textChooseFolder.setBackground(new java.awt.Color(204, 204, 204));
         textChooseFolder.setFont(new java.awt.Font("Sarabun", 1, 14)); // NOI18N
         textChooseFolder.setForeground(new java.awt.Color(153, 153, 153));
@@ -151,6 +118,7 @@ public final class TimeAttendceUI extends javax.swing.JFrame {
 
         scollPanelLogs.setAutoscrolls(true);
 
+        textAreaLogs.setEditable(false);
         textAreaLogs.setColumns(20);
         textAreaLogs.setFont(new java.awt.Font("Sarabun", 0, 12)); // NOI18N
         textAreaLogs.setRows(5);
@@ -198,13 +166,15 @@ public final class TimeAttendceUI extends javax.swing.JFrame {
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                             .addGroup(layout.createSequentialGroup()
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(buttonProcess, javax.swing.GroupLayout.PREFERRED_SIZE, 132, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(buttonChooseFolder, javax.swing.GroupLayout.PREFERRED_SIZE, 149, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                    .addComponent(buttonChooseFolder, javax.swing.GroupLayout.DEFAULT_SIZE, 149, Short.MAX_VALUE)
+                                    .addComponent(buttonProcess, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                                 .addGap(12, 12, 12)
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(buttonCancel, javax.swing.GroupLayout.PREFERRED_SIZE, 132, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(textChooseFolder, javax.swing.GroupLayout.DEFAULT_SIZE, 887, Short.MAX_VALUE)))
+                                    .addComponent(textChooseFolder, javax.swing.GroupLayout.DEFAULT_SIZE, 887, Short.MAX_VALUE)
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addComponent(buttonCancel, javax.swing.GroupLayout.PREFERRED_SIZE, 142, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addGap(0, 0, Short.MAX_VALUE))))
                             .addComponent(scollPanelLogs))
                         .addGap(0, 157, Short.MAX_VALUE))
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
@@ -264,7 +234,6 @@ public final class TimeAttendceUI extends javax.swing.JFrame {
     }//GEN-LAST:event_buttonCancelActionPerformed
 
     private void buttonProcessActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonProcessActionPerformed
-        // TODO add your handling code here:
         String folderPath = textChooseFolder.getText();
         System.out.println("folderPath ::==" + folderPath);
         if (folderPath == null || folderPath.isEmpty()) {
@@ -273,38 +242,38 @@ public final class TimeAttendceUI extends javax.swing.JFrame {
         } else {
             toastDialog(this.env.getProperty("message.folder-notfound.info"), JOptionPane.INFORMATION_MESSAGE);
             setDialogLoading(true);
-
-            File dirRoot = new File(textChooseFolder.getText());
-            logger.info("dirRoot ::==" + dirRoot.getAbsolutePath());
-            if (dirRoot.isDirectory()) {
-                FileProcessingLogical handle = new FileProcessingLogical();
-                File[] dirsDepartment = dirRoot.listFiles();
-                for (File dirDepart : dirsDepartment) {
-                    if (dirDepart.isDirectory()) {
-                        logAppend("->Folder: " + dirDepart.getName());
-                        File[] xls = dirDepart.listFiles((dir, name) -> {
-                            return name != null && name.toLowerCase().endsWith(".xlsx");
-                        });
-                        for (File fileXls : xls) {
-                            try {
-                                handle.readFile(fileXls);
-                                logAppend("  |-->File: " + fileXls.getName());
-                            } catch (Exception e) {
-                                logger.error("fileXls read file error", e);
+           
+            CompletableFuture.runAsync(() -> {
+                try {
+                    File dirRoot = new File(textChooseFolder.getText());
+                    logger.info("dirRoot ::==" + dirRoot.getAbsolutePath());
+                    if (dirRoot.isDirectory()) {
+                        FileProcessingLogical handle = new FileProcessingLogical();
+                        File[] dirsDepartment = dirRoot.listFiles();
+                        for (File dirDepart : dirsDepartment) {
+                            if (dirDepart.isDirectory()) {
+                                logAppend("->Folder: " + dirDepart.getName());
+                                File[] xls = dirDepart.listFiles((dir, name1) -> {
+                                    return name1 != null && name1.toLowerCase().endsWith(".xlsx");
+                                });
+                                for (File fileXls : xls) {
+                                    handle.readFile(fileXls);
+                                    logAppend("  |-->File: " + fileXls.getName());
+                                }
+                            } else {
+                                handle.readFile(dirDepart);
+                                logAppend("  |-->File: " + dirDepart.getName());
                             }
                         }
-                    } else {
-                        try {
-                            handle.readFile(dirDepart);
-                            logAppend("  |-->File: " + dirDepart.getName());
-                        } catch (Exception e) {
-                            logger.error("dirDepart read file error", e);
-                        }
                     }
+                    toastDialog(this.env.getProperty("message.calculating-excel.info"), JOptionPane.INFORMATION_MESSAGE);
+                } catch (Exception e) {
+                    logAppend(e.getMessage());
+                    toastDialog(this.env.getProperty("message.calculating-excel.error"), JOptionPane.ERROR_MESSAGE);
+                } finally {
+                    setDialogLoading(false);
                 }
-
-            }
-//            setDialogLoading(false);
+            });
         }
     }//GEN-LAST:event_buttonProcessActionPerformed
 
@@ -369,7 +338,7 @@ public final class TimeAttendceUI extends javax.swing.JFrame {
         JOptionPane.showMessageDialog(null, message, "System Infomation", with);
     }
 
-    public void initialUIMessage() {
+    public void initialComponentsUI() {
         dialogChooseFolder.setTitle(this.env.getProperty("message.dialog.choose-file.title"));
         fileChooseFolder.setCurrentDirectory(new java.io.File(this.env.getProperty("attendance.current-directory")));
         fileChooseFolder.setDialogTitle(this.env.getProperty("message.filechoose-dialog.title"));
@@ -379,6 +348,7 @@ public final class TimeAttendceUI extends javax.swing.JFrame {
         buttonCancel.setText(this.env.getProperty("button.cancel.text"));
         labelAppVersion.setText("TimeAttendance version " + this.env.getProperty("attendance.app.version"));
         labelLogger.setText(this.env.getProperty("label.logger.text"));
+        dialogLoading = new DialogLoading();
     }
 
     public void initialUIFont() {
@@ -416,7 +386,7 @@ public final class TimeAttendceUI extends javax.swing.JFrame {
                 dialogLoading.revalidate();
             }
         });
-        
+
     }
 
 
@@ -425,12 +395,9 @@ public final class TimeAttendceUI extends javax.swing.JFrame {
     private javax.swing.JButton buttonChooseFolder;
     private javax.swing.JButton buttonProcess;
     private javax.swing.JDialog dialogChooseFolder;
-    private javax.swing.JDialog dialogLoading;
     private javax.swing.JFileChooser fileChooseFolder;
-    private javax.swing.JLabel imageLoading;
     private javax.swing.JLabel labelAppVersion;
     private javax.swing.JLabel labelChooseFolder;
-    private javax.swing.JLabel labelLoading;
     private javax.swing.JLabel labelLogger;
     private javax.swing.JScrollPane scollPanelLogs;
     public static javax.swing.JTextArea textAreaLogs;
@@ -438,4 +405,5 @@ public final class TimeAttendceUI extends javax.swing.JFrame {
     // End of variables declaration//GEN-END:variables
 
     private Properties env;
+    private DialogLoading dialogLoading;
 }
